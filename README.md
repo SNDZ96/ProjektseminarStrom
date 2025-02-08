@@ -1,0 +1,2 @@
+# ProjektseminarStrom
+Vorhersage Stromberbrauch 
