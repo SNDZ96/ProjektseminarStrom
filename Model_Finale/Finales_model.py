@@ -15,13 +15,12 @@ sns.set_theme(style="whitegrid", palette="deep")
 
 # Dummy-Datenpfade (ersetze sie mit deinen echten Pfaden)
 file_paths = {
-    "Prognostizierte_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_F_B/DATA_2_weitere_test/Prognostizierte_Erzeugung_Day-Ahead_201701010000_202301010000_Stunde.csv",
-    "Realisierter_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_F_B/DATA_2_weitere_test/Realisierter_Stromverbrauch_201701010000_202301010000_Stunde.csv",
-    "Sonnenscheindauer": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_F_B/DATA_2_weitere_test/Sonnenscheindauer_Deutschland_neu.csv",
-    "Feiertage": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_F_B/DATA_2_weitere_test/DeutscheFE.csv",
-    "Holidays": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_F_B/DATA_2_weitere_test/BV17-22.csv"
+    "Prognostizierte_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/Prognostizierte_Erzeugung_Day-Ahead_201701010000_202301010000_Stunde.csv",
+    "Realisierter_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/Realisierter_Stromverbrauch_201701010000_202301010000_Stunde.csv",
+    "Sonnenscheindauer": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/Sonnenscheindauer_Deutschland_neu.csv",
+    "Feiertage": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/FeiertageDE.csv",
+    "Holidays": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/bevölkerung_DE.csv"
 }
-
 
 # Funktion: Datenbereinigung und Feature Engineering
 def preprocess_data(df, is_realized=False):
@@ -49,12 +48,16 @@ def preprocess_data(df, is_realized=False):
 feiertage_data = pd.read_csv(file_paths['Feiertage'], sep=';', decimal=',')
 feiertage_data['Feiertag'] = pd.to_datetime(feiertage_data['Feiertag'], format='%d.%m.%Y', errors='coerce')
 
-# Bevölkerungswachstumsdaten aus "BV17-22.csv" laden
+# Bevölkerungswachstumsdaten aus "bevölkerung_DE.csv" laden
 bv_data = pd.read_csv(file_paths['Holidays'], sep=';', decimal=',')
 bv_data['Datum'] = pd.to_datetime(bv_data['Datum'], format='%Y-%m-%d', errors='coerce')
 
-# Bereinigen der Bevölkerungsdaten (Punkte entfernen und in numerische Werte umwandeln)
-bv_data['BV'] = bv_data['BV'].str.replace('.', '', regex=False).astype(float)
+# Überprüfen der Spalten in bv_data
+print(bv_data.columns)
+
+# Falls die Spalte 'BV' nicht vorhanden ist, überprüfen Sie den Namen und passen Sie den Code an
+# Hier wird angenommen, dass die Bevölkerungswerte in der Spalte 'Bevölkerung' oder ähnlich gespeichert sind.
+bv_data['BV'] = bv_data['Bevölkerung'].str.replace('.', '', regex=False).astype(float)  # Wenn die Spalte 'Bevölkerung' heißt
 
 # Jahr extrahieren und Bevölkerungsdaten nach Jahr gruppieren
 bv_data['Jahr'] = bv_data['Datum'].dt.year
@@ -181,6 +184,7 @@ forecast_2023_df = forecast_2023_dynamic(
     historical_data=combined_data,
     start_date="2023-01-01"
 )
+
 # Vorhersagen für das Testset
 xgb_pred = xgb_model.predict(X_test)
 
