@@ -13,7 +13,7 @@ st.set_page_config(page_title="Stromprognose", layout="wide", initial_sidebar_st
 plt.style.use('default')
 sns.set_theme(style="whitegrid", palette="deep")
 
-# Dummy-Datenpfade (ersetze sie mit deinen echten Pfaden)
+# Dummy-Datenpfade (ersetzt diese durch die echten Pfade)
 file_paths = {
     "Prognostizierte_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/Prognostizierte_Erzeugung_Day-Ahead_201701010000_202301010000_Stunde.csv",
     "Realisierter_Stunde": "/Users/sauanmahmud/Desktop/ProjektseminarStrom/Model_Finale/DATA/Realisierter_Stromverbrauch_201701010000_202301010000_Stunde.csv",
@@ -24,10 +24,12 @@ file_paths = {
 
 # Funktion: Datenbereinigung und Feature Engineering
 def preprocess_data(df, is_realized=False):
+    # Datum in Datetime umwandeln
     df['Datum'] = pd.to_datetime(df['Datum von'], format='%d.%m.%Y %H:%M', errors='coerce')
     if 'Datum bis' in df.columns:
         df.drop(columns=['Datum bis'], inplace=True)
 
+    # Zahlenbereinigung der Spalten
     for col in df.columns:
         if 'MWh' in col:
             df[col] = (
@@ -37,6 +39,7 @@ def preprocess_data(df, is_realized=False):
                 .astype(float)
             )
 
+    # Benennen der Spalten je nach Datentyp
     if is_realized:
         df.rename(columns={'Gesamt (Netzlast) [MWh] Berechnete Auflösungen': 'Netzlast'}, inplace=True)
     else:
@@ -85,6 +88,7 @@ combined_data = pd.merge(
     how='inner'
 )
 
+# Spaltennamen für bessere Lesbarkeit umbenennen
 combined_data.rename(columns={
     'Photovoltaik und Wind [MWh] Berechnete Auflösungen': 'PV_Wind',
     'Wind Offshore [MWh] Berechnete Auflösungen': 'Wind_Offshore',
@@ -92,6 +96,7 @@ combined_data.rename(columns={
     'Photovoltaik [MWh] Berechnete Auflösungen': 'Photovoltaik'
 }, inplace=True)
 
+# Sonnenscheindauer-Daten zusammenführen
 combined_data = pd.merge(
     combined_data,
     sunshine_daily[['Datum von', 'Sunshine_Hours']],
@@ -100,7 +105,7 @@ combined_data = pd.merge(
     how='left'
 )
 
-# Feature hinzufügen, ob das Datum ein Feiertag ist
+# Feature hinzufügen: Ist es ein Feiertag?
 combined_data['Is_Holiday'] = combined_data['Datum'].isin(feiertage_data['Feiertag'])
 
 # Robustere Funktion: Zeit- und aggregierte Features
